@@ -2,24 +2,28 @@
 #include <windows.h>
 #include <stdio.h>
 #include <xinput.h>
-#include <ShlObj.h>
 
-LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 DWORD WINAPI Painter(LPVOID lpParam);
 DWORD WINAPI Input(LPVOID lpParam);
 int X;
 int Y;
 int selected = 1;
-char path[3][255];
+char path[3][4096];
+char args[3][4096];
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow) {
     CreateDirectory("ConsoleThing", NULL);
     FILE* f0 = fopen("ConsoleThing\\path.txt", "r");
     if (f0 != NULL) {
-        char buff[255];
+        char buff[4096];
+        char buff2[4096];
         for (int i = 0; i < 3; i++) {
-            fgets(buff, 255, f0);
-            memcpy(path[i], buff, strlen(buff) - 1);
+            fgets(buff, 4096, f0);
+            memcpy(buff2, buff, 4096);
+            strtok(buff, L".exe");
+            strcpy(&buff[strlen(buff)], ".exe");
+            memcpy(path[i], buff, strlen(buff));
+            memcpy(args[i], &buff2[strlen(buff) + 1], strlen(buff) + 1);
         }
         fclose(f0);
     }
@@ -32,7 +36,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine,
     const wchar_t CLASS_NAME[] = L"ConsoleThing";
     WNDCLASS wc;
     ZeroMemory(&wc, sizeof(WNDCLASS));
-    wc.lpfnWndProc = WindowProc;
+    wc.lpfnWndProc = DefWindowProc;
     wc.hInstance = hInstance;
     wc.lpszClassName = CLASS_NAME;
     wc.hCursor = NULL;
@@ -52,24 +56,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine,
         DispatchMessage(&msg);
     }
     return 0;
-}
-
-LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
-{
-    switch (uMsg)
-    {
-    case WM_DESTROY:
-        PostQuitMessage(0);
-        return 0;
-
-    case WM_PAINT:
-    {
-        
-    }
-    return 0;
-
-    }
-    return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }
 
 DWORD WINAPI Painter(LPVOID lpParam) {
@@ -139,21 +125,21 @@ DWORD WINAPI Input(LPVOID lpParams) {
                         case 0: {
                             STARTUPINFO info = { sizeof(info) };
                             PROCESS_INFORMATION processInfo;
-                            CreateProcess(path[0], NULL, NULL, NULL, TRUE, 0, NULL, NULL, &info, &processInfo);
+                            CreateProcess(path[0], args[0], NULL, NULL, TRUE, 0, NULL, NULL, &info, &processInfo);
                             exit(0);
                             break;
                         }
                         case 1: {
                             STARTUPINFO info = { sizeof(info) };
                             PROCESS_INFORMATION processInfo;
-                            CreateProcess(path[1], NULL, NULL, NULL, TRUE, 0, NULL, NULL, &info, &processInfo);
+                            CreateProcess(path[1], args[1], NULL, NULL, TRUE, 0, NULL, NULL, &info, &processInfo);
                             exit(0);
                             break;
                         }
                         case 2: {
                             STARTUPINFO info = { sizeof(info) };
                             PROCESS_INFORMATION processInfo;
-                            CreateProcess(path[2], NULL, NULL, NULL, TRUE, 0, NULL, NULL, &info, &processInfo);
+                            CreateProcess(path[2], args[2], NULL, NULL, TRUE, 0, NULL, NULL, &info, &processInfo);
                             exit(0);
                             break;
                         }
