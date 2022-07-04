@@ -1,4 +1,5 @@
-﻿#include "ConsoleThing.h"
+﻿#define _CRT_SECURE_NO_WARNINGS
+#include "ConsoleThing.h"
 #include <windows.h>
 #include <stdio.h>
 #include <xinput.h>
@@ -11,19 +12,16 @@ int selected = 1;
 char path[3][4096];
 char args[3][4096];
 
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow) {
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLine, int nCmdShow) {
     CreateDirectory("ConsoleThing", NULL);
     FILE* f0 = fopen("ConsoleThing\\path.txt", "r");
     if (f0 != NULL) {
         char buff[4096];
-        char buff2[4096];
         for (int i = 0; i < 3; i++) {
             fgets(buff, 4096, f0);
-            memcpy(buff2, buff, 4096);
-            strtok(buff, L".exe");
-            strcpy(&buff[strlen(buff)], ".exe");
-            memcpy(path[i], buff, strlen(buff));
-            memcpy(args[i], &buff2[strlen(buff) + 1], strlen(buff) + 1);
+            char* p = strstr(buff, ".exe") + 4;
+            memcpy(path[i], buff, p - buff);
+            memcpy(args[i], p, strlen(buff) - strlen(path[i]));
         }
         fclose(f0);
     }
@@ -33,7 +31,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine,
     }
     X = GetSystemMetrics(SM_CXSCREEN);
     Y = GetSystemMetrics(SM_CYSCREEN);
-    const wchar_t CLASS_NAME[] = L"ConsoleThing";
+    LPCSTR CLASS_NAME = "ConsoleThing";
     WNDCLASS wc;
     ZeroMemory(&wc, sizeof(WNDCLASS));
     wc.lpfnWndProc = DefWindowProc;
@@ -41,14 +39,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine,
     wc.lpszClassName = CLASS_NAME;
     wc.hCursor = NULL;
     RegisterClass(&wc);
-    HWND hwnd = CreateWindowEx(0, CLASS_NAME, "ConsoleThing", WS_BORDER, 0, 0, X, Y, NULL, NULL, hInstance, NULL);
+    HWND hwnd = CreateWindowEx(0, CLASS_NAME, CLASS_NAME, WS_BORDER, 0, 0, X, Y, NULL, NULL, hInstance, NULL);
     SetWindowLong(hwnd, GWL_STYLE, 0);
     SetCursor(NULL);
     if (hwnd == NULL)
         return 0;
     ShowWindow(hwnd, nCmdShow);
-    CreateThread(NULL, NULL, &Painter, hwnd, NULL, NULL);
-    CreateThread(NULL, NULL, &Input, NULL, NULL, NULL);
+    CreateThread(NULL, 0, &Painter, hwnd, 0, NULL);
+    CreateThread(NULL, 0, &Input, NULL, 0, NULL);
     MSG msg;
     ZeroMemory(&msg, sizeof(MSG));
     while (GetMessage(&msg, NULL, 0, 0) > 0) {
@@ -59,10 +57,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine,
 }
 
 DWORD WINAPI Painter(LPVOID lpParam) {
-    HWND hwnd = (HWND)lpParam;
+    HWND hwnd = lpParam;
     HDC hdc = GetWindowDC(hwnd);
     HBRUSH gold = CreateSolidBrush(RGB(255, 233, 0));
-    HBRUSH brush = CreatePatternBrush((HBITMAP)LoadImage(NULL, "ConsoleThing\\ConsoleThing.bmp", IMAGE_BITMAP, X, Y, LR_LOADFROMFILE));
+    HBRUSH brush = CreatePatternBrush(LoadImage(NULL, "ConsoleThing\\ConsoleThing.bmp", IMAGE_BITMAP, X, Y, LR_LOADFROMFILE));
     RECT full;
     ZeroMemory(&full, sizeof(RECT));
     RECT rc;
@@ -77,20 +75,19 @@ DWORD WINAPI Painter(LPVOID lpParam) {
         if (prev == selected) {
             continue;
         }
-        int offset = selected * X / 3.0;
+        int offset = (int)(selected * X / 3.0);
         FillRect(hdc, &full, brush);
         for (int i = 0; i < 10; i++) {
             rc.left = i + offset;
             rc.top = 0 + i;
-            rc.right = offset + X / 3.0 - i;
+            rc.right = (LONG)(offset + X / 3.0 - i);
             rc.bottom = Y - i;
            FrameRect(hdc, &rc, gold);
         }
         prev = selected;
     }
-    
-    ReleaseDC(hdc, hwnd);
-    return 0;   
+    ReleaseDC(hwnd, hdc);
+    return 0;
 }
 
 DWORD WINAPI Input(LPVOID lpParams) {
@@ -105,7 +102,7 @@ DWORD WINAPI Input(LPVOID lpParams) {
                 Sleep(1);
                 XINPUT_KEYSTROKE key;
                 ZeroMemory(&key, sizeof(XINPUT_KEYSTROKE));
-                dwResult = XInputGetKeystroke(0, NULL, &key);
+                dwResult = XInputGetKeystroke(0, 0, &key);
                 if (dwResult == ERROR_SUCCESS) {
                     if (key.Flags != XINPUT_KEYSTROKE_KEYUP) {
                         continue;
