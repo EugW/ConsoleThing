@@ -60,7 +60,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLine,
 DWORD WINAPI Painter(LPVOID lpParam) {
     HWND hwnd = lpParam;
     HDC hdc = GetWindowDC(hwnd);
-    HBRUSH gold = CreateSolidBrush(RGB(255, 255, 255));
+    HBRUSH white = CreateSolidBrush(RGB(255, 255, 255));
     HBRUSH brush = CreatePatternBrush(LoadImage(NULL, "ConsoleThing\\ConsoleThing.bmp", IMAGE_BITMAP, X, Y, LR_LOADFROMFILE));
     RECT full;
     ZeroMemory(&full, sizeof(RECT));
@@ -83,7 +83,7 @@ DWORD WINAPI Painter(LPVOID lpParam) {
             rc.top = 0 + i;
             rc.right = (LONG)(offset + X / 3.0 - i);
             rc.bottom = Y - i;
-           FrameRect(hdc, &rc, gold);
+           FrameRect(hdc, &rc, white);
         }
         prev = selected;
     }
@@ -92,6 +92,7 @@ DWORD WINAPI Painter(LPVOID lpParam) {
 }
 
 DWORD WINAPI Input(LPVOID lpParams) {
+    HWND hwnd = lpParams;
     DWORD dwResult;
     while (TRUE) {
         Sleep(1);
@@ -121,33 +122,62 @@ DWORD WINAPI Input(LPVOID lpParams) {
                     if (key.VirtualKey == VK_PAD_A) {
                         switch (selected) {
                         case 0: {
+                            HBRUSH brush = CreatePatternBrush(LoadImage(NULL, "ConsoleThing\\nintendo.bmp", IMAGE_BITMAP, X, Y, LR_LOADFROMFILE)); RECT full;
+                            HDC hdc = GetWindowDC(hwnd);
+                            ZeroMemory(&full, sizeof(RECT));
+                            full.left = 0;
+                            full.top = 0;
+                            full.right = X;
+                            full.bottom = Y;
+                            FillRect(hdc, &full, brush);
+                            ReleaseDC(hwnd, hdc);
                             STARTUPINFO info = { sizeof(info) };
                             PROCESS_INFORMATION processInfo;
                             CreateProcess(path[0], args[0], NULL, NULL, TRUE, 0, NULL, NULL, &info, &processInfo);
                             HWND fg = NULL;
-                            while (fg = GetForegroundWindow() == lpParams) {
+                            while (fg = GetForegroundWindow() == hwnd) {
                                 Sleep(1);
                             }
                             exit(0);
                             break;
                         }
                         case 1: {
+                            HBRUSH brush = CreatePatternBrush(LoadImage(NULL, "ConsoleThing\\ps.bmp", IMAGE_BITMAP, X, Y, LR_LOADFROMFILE));
+                            RECT full;
+                            HDC hdc = GetWindowDC(hwnd);
+                            ZeroMemory(&full, sizeof(RECT));
+                            full.left = 0;
+                            full.top = 0;
+                            full.right = X;
+                            full.bottom = Y;
+                            FillRect(hdc, &full, brush);
+                            ReleaseDC(hwnd, hdc);
                             STARTUPINFO info = { sizeof(info) };
                             PROCESS_INFORMATION processInfo;
                             CreateProcess(path[1], args[1], NULL, NULL, TRUE, 0, NULL, NULL, &info, &processInfo);
                             HWND fg = NULL;
-                            while (fg = GetForegroundWindow() == lpParams) {
+                            while (fg = GetForegroundWindow() == hwnd) {
                                 Sleep(1);
                             }
                             exit(0);
                             break;
                         }
                         case 2: {
+                            HBRUSH brush = CreatePatternBrush(LoadImage(NULL, "ConsoleThing\\xbox.bmp", IMAGE_BITMAP, X, Y, LR_LOADFROMFILE));
+                            RECT full;
+                            HDC hdc = GetWindowDC(hwnd);
+                            ZeroMemory(&full, sizeof(RECT));
+                            full.left = 0;
+                            full.top = 0;
+                            full.right = X;
+                            full.bottom = Y;
+                            FillRect(hdc, &full, brush);
+                            ReleaseDC(hwnd, hdc);
                             STARTUPINFO info = { sizeof(info) };
                             PROCESS_INFORMATION processInfo;
                             CreateProcess(path[2], args[2], NULL, NULL, TRUE, 0, NULL, NULL, &info, &processInfo);
                             HWND fg = NULL;
-                            while (fg = GetForegroundWindow() == lpParams) {
+                            while (fg = GetForegroundWindow() == hwnd) {
                                 Sleep(1);
                             }
                             exit(0);
