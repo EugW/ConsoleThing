@@ -19,6 +19,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLine,
         char buff[4096];
         for (int i = 0; i < 3; i++) {
             fgets(buff, 4096, f0);
+            buff[strcspn(buff, "\r\n")] = 0;
             char* p = strstr(buff, ".exe") + 4;
             memcpy(path[i], buff, p - buff);
             memcpy(args[i], p, strlen(buff) - strlen(path[i]));
@@ -46,7 +47,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLine,
         return 0;
     ShowWindow(hwnd, nCmdShow);
     CreateThread(NULL, 0, &Painter, hwnd, 0, NULL);
-    CreateThread(NULL, 0, &Input, NULL, 0, NULL);
+    CreateThread(NULL, 0, &Input, hwnd, 0, NULL);
     MSG msg;
     ZeroMemory(&msg, sizeof(MSG));
     while (GetMessage(&msg, NULL, 0, 0) > 0) {
@@ -59,7 +60,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLine,
 DWORD WINAPI Painter(LPVOID lpParam) {
     HWND hwnd = lpParam;
     HDC hdc = GetWindowDC(hwnd);
-    HBRUSH gold = CreateSolidBrush(RGB(255, 233, 0));
+    HBRUSH gold = CreateSolidBrush(RGB(255, 255, 255));
     HBRUSH brush = CreatePatternBrush(LoadImage(NULL, "ConsoleThing\\ConsoleThing.bmp", IMAGE_BITMAP, X, Y, LR_LOADFROMFILE));
     RECT full;
     ZeroMemory(&full, sizeof(RECT));
@@ -123,6 +124,10 @@ DWORD WINAPI Input(LPVOID lpParams) {
                             STARTUPINFO info = { sizeof(info) };
                             PROCESS_INFORMATION processInfo;
                             CreateProcess(path[0], args[0], NULL, NULL, TRUE, 0, NULL, NULL, &info, &processInfo);
+                            HWND fg = NULL;
+                            while (fg = GetForegroundWindow() == lpParams) {
+                                Sleep(1);
+                            }
                             exit(0);
                             break;
                         }
@@ -130,6 +135,10 @@ DWORD WINAPI Input(LPVOID lpParams) {
                             STARTUPINFO info = { sizeof(info) };
                             PROCESS_INFORMATION processInfo;
                             CreateProcess(path[1], args[1], NULL, NULL, TRUE, 0, NULL, NULL, &info, &processInfo);
+                            HWND fg = NULL;
+                            while (fg = GetForegroundWindow() == lpParams) {
+                                Sleep(1);
+                            }
                             exit(0);
                             break;
                         }
@@ -137,6 +146,10 @@ DWORD WINAPI Input(LPVOID lpParams) {
                             STARTUPINFO info = { sizeof(info) };
                             PROCESS_INFORMATION processInfo;
                             CreateProcess(path[2], args[2], NULL, NULL, TRUE, 0, NULL, NULL, &info, &processInfo);
+                            HWND fg = NULL;
+                            while (fg = GetForegroundWindow() == lpParams) {
+                                Sleep(1);
+                            }
                             exit(0);
                             break;
                         }
