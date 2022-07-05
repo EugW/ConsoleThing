@@ -134,9 +134,10 @@ DWORD WINAPI Input(LPVOID lpParams) {
                             STARTUPINFO info = { sizeof(info) };
                             PROCESS_INFORMATION processInfo;
                             CreateProcess(path[0], args[0], NULL, NULL, TRUE, 0, NULL, NULL, &info, &processInfo);
-                            HWND fg = NULL;
-                            while (fg = GetForegroundWindow() == hwnd) {
+                            HWND fg = GetForegroundWindow();
+                            while (fg == hwnd) {
                                 Sleep(1);
+                                fg = GetForegroundWindow();
                             }
                             exit(0);
                             break;
@@ -155,9 +156,10 @@ DWORD WINAPI Input(LPVOID lpParams) {
                             STARTUPINFO info = { sizeof(info) };
                             PROCESS_INFORMATION processInfo;
                             CreateProcess(path[1], args[1], NULL, NULL, TRUE, 0, NULL, NULL, &info, &processInfo);
-                            HWND fg = NULL;
-                            while (fg = GetForegroundWindow() == hwnd) {
+                            HWND fg = GetForegroundWindow();
+                            while (fg == hwnd) {
                                 Sleep(1);
+                                fg = GetForegroundWindow();
                             }
                             exit(0);
                             break;
@@ -176,9 +178,10 @@ DWORD WINAPI Input(LPVOID lpParams) {
                             STARTUPINFO info = { sizeof(info) };
                             PROCESS_INFORMATION processInfo;
                             CreateProcess(path[2], args[2], NULL, NULL, TRUE, 0, NULL, NULL, &info, &processInfo);
-                            HWND fg = NULL;
-                            while (fg = GetForegroundWindow() == hwnd) {
+                            HWND fg = GetForegroundWindow();
+                            while (fg == hwnd) {
                                 Sleep(1);
+                                fg = GetForegroundWindow();
                             }
                             exit(0);
                             break;
