@@ -20,11 +20,11 @@ char args[3][4096];
 int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR pCmdLine, _In_ int nCmdShow) {
     RAWINPUTDEVICE rid;
     ZeroMemory(&rid, sizeof(RAWINPUTDEVICE));
-    rid.usUsagePage = 0x01;          // HID_USAGE_PAGE_GENERIC
-    rid.usUsage = 0x05;              // HID_USAGE_GENERIC_GAMEPAD
-    rid.dwFlags = 0;                 // adds game pad
+    rid.usUsagePage = 0x01;
+    rid.usUsage = 0x05;
+    rid.dwFlags = 0;
     rid.hwndTarget = 0;
-    BOOL a = RegisterRawInputDevices(&rid, 1, sizeof(rid));
+    RegisterRawInputDevices(&rid, 1, sizeof(rid));
     CreateDirectoryA("ConsoleThing", NULL);
     FILE* f0 = fopen("ConsoleThing\\path.txt", "r");
     if (f0 != NULL) {
