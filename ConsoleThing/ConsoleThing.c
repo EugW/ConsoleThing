@@ -1,6 +1,4 @@
 ﻿#define _CRT_SECURE_NO_WARNINGS
-#define MAX_BUTTONS		128
-#define CHECK(exp)		{ if(!(exp)) goto Error; }
 #include <windows.h>
 #include <stdio.h>
 #include <hidsdi.h>
@@ -89,27 +87,27 @@ void ParseRawInput(PRAWINPUT pRawInput) {
     pPreparsedData = (PHIDP_PREPARSED_DATA)HeapAlloc(hHeap, 0, bufferSize);
     GetRawInputDeviceInfo(pRawInput->header.hDevice, RIDI_PREPARSEDDATA, pPreparsedData, &bufferSize);
     if (pPreparsedData == NULL) {
-        return 0;
+        return;
     }
 
     //process nav
     int val = 0;
     rt = HidP_GetUsageValue(HidP_Input, 1, 0, 0x39, &val, pPreparsedData, (PCHAR)pRawInput->data.hid.bRawData, pRawInput->data.hid.dwSizeHid);
     if (rt != HIDP_STATUS_SUCCESS) {
-        return 0;
+        return;
     }
     switch (val) {
     case 3: {
         if (selected < 2) {
             selected++;
         }
-        return 0;
+        return;
     }
     case 7: {
         if (selected > 0) {
             selected--;
         }
-        return 0;
+        return;
     }
     }
     
@@ -119,7 +117,7 @@ void ParseRawInput(PRAWINPUT pRawInput) {
     rt = HidP_GetUsages(HidP_Input, 9, 0, &usage, &usageLength, pPreparsedData,
         (PCHAR)pRawInput->data.hid.bRawData, pRawInput->data.hid.dwSizeHid);
     if (rt != HIDP_STATUS_SUCCESS) {
-        return 0;
+        return;
     }
     switch (usage) {
     case 1: {
@@ -129,7 +127,7 @@ void ParseRawInput(PRAWINPUT pRawInput) {
         CloseHandle(processInfo.hProcess);
         CloseHandle(processInfo.hThread);
         launched = TRUE;
-        return 0;
+        return;
     }
     case 3: {
         exit(0);
