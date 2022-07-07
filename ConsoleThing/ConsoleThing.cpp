@@ -95,7 +95,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
         hr = context2D->EndDraw();
         swapChain->Present1(1, 0, &parameters);
         if (launched) {
-            Sleep(5000);
+            Sleep(3500);
             exit(0);
         }
         if (!drawn) {
