@@ -50,10 +50,9 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
         0, 0, X, Y, NULL, NULL, hInstance, NULL);
     SetWindowLongA(hwnd, GWL_STYLE, 0);
     SetCursor(NULL);
-    ShowWindow(hwnd, SW_HIDE);
     MSG msg;
     ZeroMemory(&msg, sizeof(MSG));
-    PostMessage(hwnd, WM_PAINT, 0, 0);
+    PostMessage(hwnd, WM_PAINT, nCmdShow, 0);
     while (GetMessageA(&msg, NULL, 0, 0) > 0) {
         TranslateMessage(&msg);
         DispatchMessageA(&msg);
@@ -101,7 +100,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
         }
         if (!drawn) {
             SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
-            ShowWindow(hwnd, SW_NORMAL);
+            ShowWindow(hwnd, wParam);
             drawn = TRUE;
         }
         break;
