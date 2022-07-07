@@ -100,6 +100,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
             exit(0);
         }
         if (!drawn) {
+            SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
             ShowWindow(hwnd, SW_NORMAL);
             drawn = TRUE;
         }
