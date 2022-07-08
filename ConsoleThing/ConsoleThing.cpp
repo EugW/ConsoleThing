@@ -2,7 +2,7 @@
 #include <windows.h>
 #include <stdio.h>
 #include <hidsdi.h>
-#include <d2d1_1.h>
+#include <d2d1_3.h>
 #include <d3d11_1.h>
 
 
@@ -11,6 +11,7 @@ void Init();
 void InitDX();
 void InitEffects();
 void GetSwapChain(HWND hwnd);
+void AnimateFade(int frames);
 void ParseRawInput(PRAWINPUT pRawInput);
 
 HRESULT hr;
@@ -22,17 +23,18 @@ DXGI_SWAP_CHAIN_DESC1 swapChainDesc;
 IDXGIFactory2* factoryDXGI;
 D2D1_PIXEL_FORMAT format;
 D2D1_BITMAP_PROPERTIES1 bitmapProperties;
-ID2D1Effect* scaleEffect[4] = {};
+ID2D1Effect* scaleEffect[6];
 IDXGISwapChain1* swapChain;
 DXGI_PRESENT_PARAMETERS parameters = { 0, NULL, NULL, NULL };
 
 int X;
 int Y;
-int selected = 1;
+int selected = 0;
 BOOL launched = FALSE;
 BOOL drawn = FALSE;
-char path[3][4096];
-char args[3][4096];
+int delay = 0;
+char path[4][4096];
+char args[4][4096];
 
 int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR pCmdLine, _In_ int nCmdShow) {
     Init();
@@ -86,21 +88,22 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
         if (swapChain == NULL) {
             GetSwapChain(hwnd);
         }
-        context2D->BeginDraw();
-        context2D->Clear(NULL);
-        context2D->DrawImage(scaleEffect[(1 + selected) * launched]);
-        float onethird = X / 3.0f;
-        context2D->DrawRectangle(D2D1::RectF(selected * onethird + 5.0f, 5.0f,
-            selected * onethird + onethird - 5.0f, Y - 5.0f), white, !launched * 10.0f, NULL);
-        hr = context2D->EndDraw();
-        swapChain->Present1(1, 0, &parameters);
         if (launched) {
-            Sleep(3500);
+            AnimateFade(100);
+            Sleep(delay);
             exit(0);
         }
+        context2D->BeginDraw();
+        context2D->Clear(NULL);
+        context2D->DrawImage(scaleEffect[0]);
+        float onefourth = X / 4.0f;
+        context2D->DrawRectangle(D2D1::RectF(selected * onefourth + 5.0f, 5.0f,
+            selected * onefourth + onefourth - 5.0f, Y - 5.0f), white, 10.0f, NULL);
+        hr = context2D->EndDraw();
+        swapChain->Present1(1, 0, &parameters);
         if (!drawn) {
+            ShowWindow(hwnd, (int)wParam);
             SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
-            ShowWindow(hwnd, wParam);
             drawn = TRUE;
         }
         break;
@@ -114,8 +117,11 @@ void Init() {
     CreateDirectoryA("ConsoleThing", NULL);
     FILE* f0 = fopen("ConsoleThing\\path.txt", "r");
     if (f0 != NULL) {
+        char buffInt[256];
+        fgets(buffInt, 255, f0);
+        delay = atoi(buffInt);
         char buff[4096];
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < 4; i++) {
             fgets(buff, 4095, f0);
             buff[strcspn(buff, "\r\n")] = 0;
             char* p = strstr(buff, ".exe") + 4;
@@ -176,17 +182,19 @@ void InitDX() {
 }
 
 void InitEffects() {
-    LPCSTR files[4] = {
+    LPCSTR files[6] = {
         "ConsoleThing\\ConsoleThing.bmp",
-        "ConsoleThing\\nintendo.bmp",
+        "ConsoleThing\\black.bmp",
+        "ConsoleThing\\steam.bmp",
         "ConsoleThing\\ps.bmp",
-        "ConsoleThing\\xbox.bmp"
+        "ConsoleThing\\xbox.bmp",
+        "ConsoleThing\\nintendo.bmp"
     };
     BITMAP bt = { 0 };
     BITMAPINFO inf = { 0 };
     HDC DC = CreateCompatibleDC(NULL);
     ID2D1Bitmap1* tmp;
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < 6; i++) {
         HBITMAP hBitmap = (HBITMAP)LoadImageA(NULL, files[i], IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
         GetObject(hBitmap, sizeof(bt), &bt);
         inf.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
@@ -221,6 +229,41 @@ void GetSwapChain(HWND hwnd) {
     context2D->SetTarget(bitmap2D);
 }
 
+void AnimateFade(int frames) {
+    ID2D1Effect* eff;
+    context2D->CreateEffect(CLSID_D2D1CrossFade, &eff);
+    if (eff == NULL) {
+        return;
+    }
+    ID2D1Image* img1;
+    scaleEffect[0]->GetOutput(&img1);
+    ID2D1Image* mid;
+    scaleEffect[1]->GetOutput(&mid);
+    ID2D1Image* img2;
+    scaleEffect;
+    scaleEffect[selected + 2]->GetOutput(&img2);
+    eff->SetInput(0, img1);
+    eff->SetInput(1, mid);
+    for (int frame = frames; frame >= 0; frame -= 1) {
+        context2D->BeginDraw();
+        context2D->Clear(NULL);
+        eff->SetValue(D2D1_CROSSFADE_PROP_WEIGHT, (float)frame / frames);
+        context2D->DrawImage(eff);
+        hr = context2D->EndDraw();
+        swapChain->Present1(1, 0, &parameters);
+    }
+    eff->SetInput(0, mid);
+    eff->SetInput(1, img2);
+    for (int frame = frames; frame >= 0; frame -= 1) {
+        context2D->BeginDraw();
+        context2D->Clear(NULL);
+        eff->SetValue(D2D1_CROSSFADE_PROP_WEIGHT, (float)frame / frames);
+        context2D->DrawImage(eff);
+        hr = context2D->EndDraw();
+        swapChain->Present1(1, 0, &parameters);
+    }
+}
+
 void ParseRawInput(PRAWINPUT pRawInput) {
     PHIDP_PREPARSED_DATA pPreparsedData;
     UINT bufferSize = 0;
@@ -246,7 +289,7 @@ void ParseRawInput(PRAWINPUT pRawInput) {
     }
     switch (val) {
     case 3: {
-        if (selected < 2) {
+        if (selected < 3) {
             selected++;
         }
         return;
