@@ -11,7 +11,7 @@ void Init();
 void InitDX();
 void InitEffects();
 void GetSwapChain(HWND hwnd);
-void AnimateFade(int frames);
+void AnimateFade();
 void ParseRawInput(PRAWINPUT pRawInput);
 
 HRESULT hr;
@@ -32,7 +32,7 @@ int Y;
 int selected = 0;
 BOOL launched = FALSE;
 BOOL drawn = FALSE;
-int delay = 0;
+int values[3];
 char path[4][4096];
 char args[4][4096];
 
@@ -89,8 +89,8 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
             GetSwapChain(hwnd);
         }
         if (launched) {
-            AnimateFade(100);
-            Sleep(delay);
+            AnimateFade();
+            Sleep(values[2]);
             exit(0);
         }
         context2D->BeginDraw();
@@ -118,8 +118,10 @@ void Init() {
     FILE* f0 = fopen("ConsoleThing\\path.txt", "r");
     if (f0 != NULL) {
         char buffInt[256];
-        fgets(buffInt, 255, f0);
-        delay = atoi(buffInt);
+        for (int i = 0; i < 3; i++) {
+            fgets(buffInt, 255, f0);
+            values[i] = atoi(buffInt);
+        }
         char buff[4096];
         for (int i = 0; i < 4; i++) {
             fgets(buff, 4095, f0);
@@ -229,7 +231,7 @@ void GetSwapChain(HWND hwnd) {
     context2D->SetTarget(bitmap2D);
 }
 
-void AnimateFade(int frames) {
+void AnimateFade() {
     ID2D1Effect* eff;
     context2D->CreateEffect(CLSID_D2D1CrossFade, &eff);
     if (eff == NULL) {
@@ -244,20 +246,20 @@ void AnimateFade(int frames) {
     scaleEffect[selected + 2]->GetOutput(&img2);
     eff->SetInput(0, img1);
     eff->SetInput(1, mid);
-    for (int frame = frames; frame >= 0; frame -= 1) {
+    for (int frame = values[0]; frame >= 0; frame -= 1) {
         context2D->BeginDraw();
         context2D->Clear(NULL);
-        eff->SetValue(D2D1_CROSSFADE_PROP_WEIGHT, (float)frame / frames);
+        eff->SetValue(D2D1_CROSSFADE_PROP_WEIGHT, (float)frame / values[0]);
         context2D->DrawImage(eff);
         hr = context2D->EndDraw();
         swapChain->Present1(1, 0, &parameters);
     }
     eff->SetInput(0, mid);
     eff->SetInput(1, img2);
-    for (int frame = frames; frame >= 0; frame -= 1) {
+    for (int frame = values[1]; frame >= 0; frame -= 1) {
         context2D->BeginDraw();
         context2D->Clear(NULL);
-        eff->SetValue(D2D1_CROSSFADE_PROP_WEIGHT, (float)frame / frames);
+        eff->SetValue(D2D1_CROSSFADE_PROP_WEIGHT, (float)frame / values[1]);
         context2D->DrawImage(eff);
         hr = context2D->EndDraw();
         swapChain->Present1(1, 0, &parameters);
