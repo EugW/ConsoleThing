@@ -5,7 +5,6 @@
 #include <d2d1_3.h>
 #include <d3d11_1.h>
 
-
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 void Init();
 void InitDX();
@@ -25,14 +24,14 @@ D2D1_PIXEL_FORMAT format;
 D2D1_BITMAP_PROPERTIES1 bitmapProperties;
 ID2D1Effect* scaleEffect[6];
 IDXGISwapChain1* swapChain;
-DXGI_PRESENT_PARAMETERS parameters = { 0, NULL, NULL, NULL };
+DXGI_PRESENT_PARAMETERS parameters;
 
 int X;
 int Y;
 int selected = 0;
 BOOL launched = FALSE;
 BOOL drawn = FALSE;
-int values[3];
+int values[5];
 char path[4][4096];
 char args[4][4096];
 
@@ -90,17 +89,21 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
         }
         if (launched) {
             AnimateFade();
-            Sleep(values[2]);
+            Sleep(values[4]);
             exit(0);
         }
         context2D->BeginDraw();
         context2D->Clear(NULL);
         context2D->DrawImage(scaleEffect[0]);
-        float onefourth = X / 4.0f;
-        context2D->DrawRectangle(D2D1::RectF(selected * onefourth + 5.0f, 5.0f,
-            selected * onefourth + onefourth - 5.0f, Y - 5.0f), white, 10.0f, NULL);
+        float one4 = X / 4.0f;
+        float thickness = (float)values[0];
+        float rad = (float)values[1];
+        context2D->DrawRoundedRectangle(D2D1::RoundedRect(
+            D2D1::RectF(selected * one4 + thickness / 2, thickness / 2, selected * one4 + one4 - thickness / 2, Y - thickness / 2),
+            rad, rad
+        ), white, thickness);
         hr = context2D->EndDraw();
-        swapChain->Present1(1, 0, &parameters);
+        swapChain->Present1(0, 0, &parameters);
         if (!drawn) {
             ShowWindow(hwnd, (int)wParam);
             SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
@@ -118,7 +121,7 @@ void Init() {
     FILE* f0 = fopen("ConsoleThing\\path.txt", "r");
     if (f0 != NULL) {
         char buffInt[256];
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < 5; i++) {
             fgets(buffInt, 255, f0);
             values[i] = atoi(buffInt);
         }
@@ -151,9 +154,10 @@ void Init() {
     Y = GetSystemMetrics(SM_CYSCREEN);
     sampleDesc = { 1, 0 };
     swapChainDesc = { 0, 0, DXGI_FORMAT_B8G8R8A8_UNORM, FALSE, sampleDesc, DXGI_USAGE_RENDER_TARGET_OUTPUT,
-    2, DXGI_SCALING_NONE, DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL, DXGI_ALPHA_MODE_IGNORE, 0 };
+    2, DXGI_SCALING_NONE, DXGI_SWAP_EFFECT_FLIP_DISCARD, DXGI_ALPHA_MODE_IGNORE, 0 };
     format = { DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_IGNORE };
     bitmapProperties = { format, 0, 0, D2D1_BITMAP_OPTIONS_NONE };
+    parameters = { 0, NULL, NULL, NULL };
 }
 
 void InitDX() {
@@ -168,12 +172,12 @@ void InitDX() {
         return;
     }
     IDXGIDevice1* deviceDXGI;
-    hr = device3D->QueryInterface(__uuidof(IDXGIDevice1), reinterpret_cast<void**>(&deviceDXGI));
+    hr = device3D->QueryInterface(__uuidof(IDXGIDevice1), (void**) & deviceDXGI);
     if (deviceDXGI == NULL) {
         return;
     }
     ID2D1Factory1* factory2D = {};
-    hr = D2D1CreateFactory(D2D1_FACTORY_TYPE_MULTI_THREADED, __uuidof(ID2D1Factory1), reinterpret_cast<void**>(&factory2D));
+    hr = D2D1CreateFactory(D2D1_FACTORY_TYPE_MULTI_THREADED, __uuidof(ID2D1Factory1), (void**) & factory2D);
     ID2D1Device* device2D;
     hr = factory2D->CreateDevice(deviceDXGI, &device2D);
     hr = device2D->CreateDeviceContext(D2D1_DEVICE_CONTEXT_OPTIONS_ENABLE_MULTITHREADED_OPTIMIZATIONS, &context2D);
@@ -246,23 +250,23 @@ void AnimateFade() {
     scaleEffect[selected + 2]->GetOutput(&img2);
     eff->SetInput(0, img1);
     eff->SetInput(1, mid);
-    for (int frame = values[0]; frame >= 0; frame -= 1) {
+    for (int frame = values[2]; frame >= 0; frame -= 1) {
         context2D->BeginDraw();
         context2D->Clear(NULL);
-        eff->SetValue(D2D1_CROSSFADE_PROP_WEIGHT, (float)frame / values[0]);
+        eff->SetValue(D2D1_CROSSFADE_PROP_WEIGHT, (float)frame / values[2]);
         context2D->DrawImage(eff);
         hr = context2D->EndDraw();
-        swapChain->Present1(1, 0, &parameters);
+        swapChain->Present1(0, 0, &parameters);
     }
     eff->SetInput(0, mid);
     eff->SetInput(1, img2);
-    for (int frame = values[1]; frame >= 0; frame -= 1) {
+    for (int frame = values[3]; frame >= 0; frame -= 1) {
         context2D->BeginDraw();
         context2D->Clear(NULL);
-        eff->SetValue(D2D1_CROSSFADE_PROP_WEIGHT, (float)frame / values[1]);
+        eff->SetValue(D2D1_CROSSFADE_PROP_WEIGHT, (float)frame / values[3]);
         context2D->DrawImage(eff);
         hr = context2D->EndDraw();
-        swapChain->Present1(1, 0, &parameters);
+        swapChain->Present1(0, 0, &parameters);
     }
 }
 
