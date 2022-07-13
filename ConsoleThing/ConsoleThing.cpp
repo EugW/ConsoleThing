@@ -26,6 +26,8 @@ ID2D1Effect* scaleEffect[6];
 IDXGISwapChain1* swapChain;
 DXGI_PRESENT_PARAMETERS parameters;
 
+
+HANDLE mutex;
 int X;
 int Y;
 int selected = 0;
@@ -36,6 +38,10 @@ char path[4][4096];
 char args[4][4096];
 
 int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR pCmdLine, _In_ int nCmdShow) {
+    mutex = CreateMutexA(NULL, TRUE, "ConsoleThingMutex");
+    if (mutex == NULL || GetLastError() == ERROR_ALREADY_EXISTS) {
+        return 0;
+    }
     Init();
     InitDX();
     InitEffects();
