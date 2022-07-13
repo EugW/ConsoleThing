@@ -26,14 +26,18 @@ ID2D1Effect* scaleEffect[6];
 IDXGISwapChain1* swapChain;
 DXGI_PRESENT_PARAMETERS parameters;
 
-
 HANDLE mutex;
+BOOL launched = FALSE;
+BOOL drawn = FALSE;
+
 int X;
 int Y;
 int selected = 0;
-BOOL launched = FALSE;
-BOOL drawn = FALSE;
 int values[5];
+float one4;
+float thickness;
+float halfthickness;
+float rad;
 char path[4][4096];
 char args[4][4096];
 
@@ -101,11 +105,8 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
         context2D->BeginDraw();
         context2D->Clear(NULL);
         context2D->DrawImage(scaleEffect[0]);
-        float one4 = X / 4.0f;
-        float thickness = (float)values[0];
-        float rad = (float)values[1];
         context2D->DrawRoundedRectangle(D2D1::RoundedRect(
-            D2D1::RectF(selected * one4 + thickness / 2, thickness / 2, selected * one4 + one4 - thickness / 2, Y - thickness / 2),
+            D2D1::RectF(selected * one4 + halfthickness, halfthickness, selected * one4 + one4 - halfthickness, Y - halfthickness),
             rad, rad
         ), white, thickness);
         hr = context2D->EndDraw();
@@ -158,6 +159,10 @@ void Init() {
     RegisterRawInputDevices(&rid, 1, sizeof(rid));
     X = GetSystemMetrics(SM_CXSCREEN);
     Y = GetSystemMetrics(SM_CYSCREEN);
+    one4 = X / 4.0f;
+    thickness = (float)values[0];
+    halfthickness = thickness / 2.0f;
+    rad = (float)values[1];
     sampleDesc = { 1, 0 };
     swapChainDesc = { 0, 0, DXGI_FORMAT_B8G8R8A8_UNORM, FALSE, sampleDesc, DXGI_USAGE_RENDER_TARGET_OUTPUT,
     2, DXGI_SCALING_NONE, DXGI_SWAP_EFFECT_FLIP_DISCARD, DXGI_ALPHA_MODE_IGNORE, 0 };
