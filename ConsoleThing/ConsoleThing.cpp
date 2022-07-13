@@ -34,7 +34,7 @@ int X;
 int Y;
 int selected = 0;
 int values[5];
-float one4;
+float onefourth;
 float thickness;
 float halfthickness;
 float rad;
@@ -106,7 +106,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
         context2D->Clear(NULL);
         context2D->DrawImage(scaleEffect[0]);
         context2D->DrawRoundedRectangle(D2D1::RoundedRect(
-            D2D1::RectF(selected * one4 + halfthickness, halfthickness, selected * one4 + one4 - halfthickness, Y - halfthickness),
+            D2D1::RectF(selected * onefourth + halfthickness, halfthickness, selected * onefourth + onefourth - halfthickness, Y - halfthickness),
             rad, rad
         ), white, thickness);
         hr = context2D->EndDraw();
@@ -159,7 +159,7 @@ void Init() {
     RegisterRawInputDevices(&rid, 1, sizeof(rid));
     X = GetSystemMetrics(SM_CXSCREEN);
     Y = GetSystemMetrics(SM_CYSCREEN);
-    one4 = X / 4.0f;
+    onefourth = X / 4.0f;
     thickness = (float)values[0];
     halfthickness = thickness / 2.0f;
     rad = (float)values[1];
