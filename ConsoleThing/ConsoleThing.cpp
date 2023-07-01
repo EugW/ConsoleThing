@@ -42,7 +42,7 @@ BOOL drawn = FALSE;
 int X;
 int Y;
 int selected = 0;
-int values[6];
+int values[9];
 float onefourth;
 float thickness;
 float halfthickness;
@@ -122,7 +122,6 @@ DWORD WINAPI DrawThread(LPVOID param) {
     LARGE_INTEGER Frequency;
     QueryPerformanceFrequency(&Frequency);
     HWND hwnd = (HWND)param;
-    std::cout << "FPS: " << values[3] << std::endl;
     if (swapChain == NULL) {
         GetSwapChain(hwnd);
     }
@@ -152,7 +151,7 @@ DWORD WINAPI DrawThread(LPVOID param) {
         swapChain->Present1(1, 0, &parameters);
         while (true) {
             QueryPerformanceCounter(&EndingTime);
-            if ((float)(EndingTime.QuadPart - StartingTime.QuadPart) / (float)Frequency.QuadPart * 1000.0f - 1000.0f / ((float)values[3]) >= 0)
+            if ((float)(EndingTime.QuadPart - StartingTime.QuadPart) / (float)Frequency.QuadPart * 1000.0f - 1000.0f / ((float)values[2]) >= 0)
                 break;
         }
     }
@@ -163,7 +162,7 @@ void Init() {
     FILE* f0 = fopen("ConsoleThing\\path.txt", "r");
     if (f0 != NULL) {
         char buffInt[256];
-        for (int i = 0; i < 6; i++) {
+        for (int i = 0; i < 9; i++) {
             fgets(buffInt, 255, f0);
             values[i] = atoi(buffInt);
         }
@@ -296,14 +295,14 @@ void AnimateFade() {
     eff->SetInput(1, mid);
     while (opacity >= 0.0f) {
         opacity -= 0.001f;
-        PrecSleep(values[5]);
+        PrecSleep(values[4]);
     }
     eff->SetInput(0, mid);
     eff->SetInput(1, img2);
     opacity = 1.0f;
     while (opacity >= 0.0f) {
         opacity -= 0.001f;
-        PrecSleep(values[5]);
+        PrecSleep(values[4]);
     }
 }
 
@@ -320,7 +319,7 @@ void AnimateRect() {
             current1--;
             current2--;
         }
-        PrecSleep(values[4]);
+        PrecSleep(values[3]);
     }
 }
 
@@ -394,7 +393,7 @@ void ParseRawInput(PRAWINPUT pRawInput) {
         CloseHandle(processInfo.hThread);
         launched = TRUE;
         AnimateFade();
-        Sleep(values[2]);
+        Sleep(values[5 + selected]);
         exit(0);
         return;
     }
