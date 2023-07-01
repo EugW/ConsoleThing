@@ -4,8 +4,11 @@
 #include <hidsdi.h>
 #include <d2d1_3.h>
 #include <d3d11_1.h>
+#include <iostream>
+#include <timeapi.h>
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+DWORD WINAPI DrawThread(LPVOID param);
 void Init();
 void InitDX();
 void InitEffects();
@@ -33,7 +36,7 @@ BOOL drawn = FALSE;
 int X;
 int Y;
 int selected = 0;
-int values[5];
+int values[6];
 float onefourth;
 float thickness;
 float halfthickness;
@@ -41,7 +44,7 @@ float rad;
 char path[4][4096];
 char args[4][4096];
 
-int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR pCmdLine, _In_ int nCmdShow) {
+int main() {
     mutex = CreateMutexA(NULL, TRUE, "ConsoleThingMutex");
     if (mutex == NULL || GetLastError() == ERROR_ALREADY_EXISTS) {
         return 0;
@@ -53,17 +56,17 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
     WNDCLASSA wc;
     ZeroMemory(&wc, sizeof(WNDCLASSA));
     wc.lpfnWndProc = WindowProc;
-    wc.hInstance = hInstance;
     wc.lpszClassName = CLASS_NAME;
     wc.hCursor = NULL;
     RegisterClassA(&wc);
     HWND hwnd = CreateWindowExA(0, CLASS_NAME, CLASS_NAME, WS_BORDER,
-        0, 0, X, Y, NULL, NULL, hInstance, NULL);
+        0, 0, X, Y, NULL, NULL, NULL, NULL);
     SetWindowLongA(hwnd, GWL_STYLE, 0);
     SetCursor(NULL);
     MSG msg;
     ZeroMemory(&msg, sizeof(MSG));
-    PostMessage(hwnd, WM_PAINT, nCmdShow, 0);
+    PostMessage(hwnd, WM_PAINT, 1, 0);
+    CreateThread(NULL, 0, &DrawThread, hwnd, 0, NULL);
     while (GetMessageA(&msg, NULL, 0, 0) > 0) {
         TranslateMessage(&msg);
         DispatchMessageA(&msg);
@@ -89,11 +92,10 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
         GetRawInputData((HRAWINPUT)lParam, RID_INPUT, pRawInput, &bufferSize, sizeof(RAWINPUTHEADER));
         ParseRawInput(pRawInput);
         HeapFree(hHeap, 0, pRawInput);
-        InvalidateRect(hwnd, NULL, TRUE);
-        UpdateWindow(hwnd);
         break;
     }
     case WM_PAINT: {
+        //std::cout << "DRAW" << std::endl;
         if (swapChain == NULL) {
             GetSwapChain(hwnd);
         }
@@ -110,10 +112,10 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
             rad, rad
         ), white, thickness);
         hr = context2D->EndDraw();
-        swapChain->Present1(0, 0, &parameters);
+        swapChain->Present1(1, 0, &parameters);
         if (!drawn) {
             ShowWindow(hwnd, (int)wParam);
-            SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+            //SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
             drawn = TRUE;
         }
         break;
@@ -123,12 +125,33 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
     return DefWindowProcA(hwnd, uMsg, wParam, lParam);
 }
 
+DWORD WINAPI DrawThread(LPVOID param) {
+    MMRESULT r = timeBeginPeriod(1);
+    LARGE_INTEGER StartingTime, EndingTime;
+    LARGE_INTEGER Frequency;
+    QueryPerformanceFrequency(&Frequency);
+    HWND hwnd = (HWND)param;
+    std::cout << "FPS: " << values[5] << std::endl;
+    while (true) {
+        QueryPerformanceCounter(&StartingTime);
+        InvalidateRect(hwnd, NULL, TRUE);
+        UpdateWindow(hwnd);
+        while (true) {
+            QueryPerformanceCounter(&EndingTime);
+            if ((double)(EndingTime.QuadPart - StartingTime.QuadPart) / (double)Frequency.QuadPart * 1000 - 1000.0 / (double)values[5] >= 0)
+                break;
+        }
+        std::cout << "FRAMETIME(mcs): " << (double)(EndingTime.QuadPart - StartingTime.QuadPart) / (double)Frequency.QuadPart * 1000 << std::endl;
+        std::cout << "TARGET FRAMETIME(mcs): " << 1000.0 / (double) values[5] << std::endl;
+    }
+}
+
 void Init() {
     CreateDirectoryA("ConsoleThing", NULL);
     FILE* f0 = fopen("ConsoleThing\\path.txt", "r");
     if (f0 != NULL) {
         char buffInt[256];
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 6; i++) {
             fgets(buffInt, 255, f0);
             values[i] = atoi(buffInt);
         }
