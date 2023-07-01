@@ -13,7 +13,9 @@ void Init();
 void InitDX();
 void InitEffects();
 void GetSwapChain(HWND hwnd);
+void AnimateRect();
 void AnimateFade();
+void PrecSleep(int dur);
 void ParseRawInput(PRAWINPUT pRawInput);
 
 HRESULT hr;
@@ -28,6 +30,10 @@ D2D1_BITMAP_PROPERTIES1 bitmapProperties;
 ID2D1Effect* scaleEffect[6];
 IDXGISwapChain1* swapChain;
 DXGI_PRESENT_PARAMETERS parameters;
+ID2D1Effect* eff; 
+ID2D1Image* img1;
+ID2D1Image* mid;
+ID2D1Image* img2;
 
 HANDLE mutex;
 BOOL launched = FALSE;
@@ -43,8 +49,11 @@ float halfthickness;
 float rad;
 char path[4][4096];
 char args[4][4096];
+float current1 = 0.0f;
+float current2 = 0.0f;
+float opacity = 1.0f;
 
-int main() {
+int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR pCmdLine, _In_ int nCmdShow) {
     mutex = CreateMutexA(NULL, TRUE, "ConsoleThingMutex");
     if (mutex == NULL || GetLastError() == ERROR_ALREADY_EXISTS) {
         return 0;
@@ -56,6 +65,7 @@ int main() {
     WNDCLASSA wc;
     ZeroMemory(&wc, sizeof(WNDCLASSA));
     wc.lpfnWndProc = WindowProc;
+    wc.hInstance = hInstance;
     wc.lpszClassName = CLASS_NAME;
     wc.hCursor = NULL;
     RegisterClassA(&wc);
@@ -65,7 +75,7 @@ int main() {
     SetCursor(NULL);
     MSG msg;
     ZeroMemory(&msg, sizeof(MSG));
-    PostMessage(hwnd, WM_PAINT, 1, 0);
+    PostMessage(hwnd, WM_PAINT, nCmdShow, 0);
     CreateThread(NULL, 0, &DrawThread, hwnd, 0, NULL);
     while (GetMessageA(&msg, NULL, 0, 0) > 0) {
         TranslateMessage(&msg);
@@ -95,27 +105,8 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
         break;
     }
     case WM_PAINT: {
-        //std::cout << "DRAW" << std::endl;
-        if (swapChain == NULL) {
-            GetSwapChain(hwnd);
-        }
-        if (launched) {
-            AnimateFade();
-            Sleep(values[4]);
-            exit(0);
-        }
-        context2D->BeginDraw();
-        context2D->Clear(NULL);
-        context2D->DrawImage(scaleEffect[0]);
-        context2D->DrawRoundedRectangle(D2D1::RoundedRect(
-            D2D1::RectF(selected * onefourth + halfthickness, halfthickness, selected * onefourth + onefourth - halfthickness, Y - halfthickness),
-            rad, rad
-        ), white, thickness);
-        hr = context2D->EndDraw();
-        swapChain->Present1(1, 0, &parameters);
         if (!drawn) {
             ShowWindow(hwnd, (int)wParam);
-            //SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
             drawn = TRUE;
         }
         break;
@@ -131,18 +122,39 @@ DWORD WINAPI DrawThread(LPVOID param) {
     LARGE_INTEGER Frequency;
     QueryPerformanceFrequency(&Frequency);
     HWND hwnd = (HWND)param;
-    std::cout << "FPS: " << values[5] << std::endl;
+    std::cout << "FPS: " << values[3] << std::endl;
+    if (swapChain == NULL) {
+        GetSwapChain(hwnd);
+    }
+    current1 = selected * onefourth + halfthickness;
+    current2 = selected * onefourth + onefourth - halfthickness;
     while (true) {
         QueryPerformanceCounter(&StartingTime);
-        InvalidateRect(hwnd, NULL, TRUE);
-        UpdateWindow(hwnd);
+        context2D->BeginDraw();
+        context2D->Clear(NULL);
+        if (launched) {
+            eff->SetValue(D2D1_CROSSFADE_PROP_WEIGHT, opacity);
+            context2D->DrawImage(eff);
+        }
+        else {
+            context2D->DrawImage(scaleEffect[0]);
+            context2D->DrawRoundedRectangle(D2D1::RoundedRect(
+                D2D1::RectF(
+                    current1,
+                    halfthickness,
+                    current2,
+                    Y - halfthickness
+                ),
+                rad, rad
+            ), white, thickness);
+        }
+        hr = context2D->EndDraw();
+        swapChain->Present1(1, 0, &parameters);
         while (true) {
             QueryPerformanceCounter(&EndingTime);
-            if ((double)(EndingTime.QuadPart - StartingTime.QuadPart) / (double)Frequency.QuadPart * 1000 - 1000.0 / (double)values[5] >= 0)
+            if ((float)(EndingTime.QuadPart - StartingTime.QuadPart) / (float)Frequency.QuadPart * 1000.0f - 1000.0f / ((float)values[3]) >= 0)
                 break;
         }
-        std::cout << "FRAMETIME(mcs): " << (double)(EndingTime.QuadPart - StartingTime.QuadPart) / (double)Frequency.QuadPart * 1000 << std::endl;
-        std::cout << "TARGET FRAMETIME(mcs): " << 1000.0 / (double) values[5] << std::endl;
     }
 }
 
@@ -270,37 +282,57 @@ void GetSwapChain(HWND hwnd) {
 }
 
 void AnimateFade() {
-    ID2D1Effect* eff;
     context2D->CreateEffect(CLSID_D2D1CrossFade, &eff);
     if (eff == NULL) {
         return;
     }
-    ID2D1Image* img1;
     scaleEffect[0]->GetOutput(&img1);
-    ID2D1Image* mid;
     scaleEffect[1]->GetOutput(&mid);
-    ID2D1Image* img2;
-    scaleEffect;
+    scaleEffect[selected + 2]->GetOutput(&img2);
+    scaleEffect[0]->GetOutput(&img1);
+    scaleEffect[1]->GetOutput(&mid);
     scaleEffect[selected + 2]->GetOutput(&img2);
     eff->SetInput(0, img1);
     eff->SetInput(1, mid);
-    for (int frame = values[2]; frame >= 0; frame -= 1) {
-        context2D->BeginDraw();
-        context2D->Clear(NULL);
-        eff->SetValue(D2D1_CROSSFADE_PROP_WEIGHT, (float)frame / values[2]);
-        context2D->DrawImage(eff);
-        hr = context2D->EndDraw();
-        swapChain->Present1(0, 0, &parameters);
+    while (opacity >= 0.0f) {
+        opacity -= 0.001f;
+        PrecSleep(values[5]);
     }
     eff->SetInput(0, mid);
     eff->SetInput(1, img2);
-    for (int frame = values[3]; frame >= 0; frame -= 1) {
-        context2D->BeginDraw();
-        context2D->Clear(NULL);
-        eff->SetValue(D2D1_CROSSFADE_PROP_WEIGHT, (float)frame / values[3]);
-        context2D->DrawImage(eff);
-        hr = context2D->EndDraw();
-        swapChain->Present1(0, 0, &parameters);
+    opacity = 1.0f;
+    while (opacity >= 0.0f) {
+        opacity -= 0.001f;
+        PrecSleep(values[5]);
+    }
+}
+
+void AnimateRect() {
+    float target1 = selected * onefourth + halfthickness;
+    float target2 = selected * onefourth + onefourth - halfthickness;
+    float diff = target1 - current1;
+    while (current1 != target1) {
+        if (current1 < target1) {
+            current1++;
+            current2++;
+        }
+        if (current1 > target1) {
+            current1--;
+            current2--;
+        }
+        PrecSleep(values[4]);
+    }
+}
+
+void PrecSleep(int durMcs) {
+    LARGE_INTEGER StartingTime, EndingTime;
+    LARGE_INTEGER Frequency;
+    QueryPerformanceFrequency(&Frequency);
+    QueryPerformanceCounter(&StartingTime);
+    while (true) {
+        QueryPerformanceCounter(&EndingTime);
+        if ((float)(EndingTime.QuadPart - StartingTime.QuadPart) / (float)Frequency.QuadPart * 1000000.0f >= (float)durMcs)
+            break;
     }
 }
 
@@ -331,12 +363,14 @@ void ParseRawInput(PRAWINPUT pRawInput) {
     case 3: {
         if (selected < 3) {
             selected++;
+            AnimateRect();
         }
         return;
     }
     case 7: {
         if (selected > 0) {
             selected--;
+            AnimateRect();
         }
         return;
     }
@@ -359,6 +393,9 @@ void ParseRawInput(PRAWINPUT pRawInput) {
         CloseHandle(processInfo.hProcess);
         CloseHandle(processInfo.hThread);
         launched = TRUE;
+        AnimateFade();
+        Sleep(values[2]);
+        exit(0);
         return;
     }
     case 3: {
