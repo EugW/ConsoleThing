@@ -28,7 +28,7 @@ DXGI_SWAP_CHAIN_DESC1 swapChainDesc;
 IDXGIFactory2* factoryDXGI;
 D2D1_PIXEL_FORMAT format;
 D2D1_BITMAP_PROPERTIES1 bitmapProperties;
-ID2D1Effect* scaleEffect[5];
+ID2D1Effect* scaleEffect[6];
 IDXGISwapChain1* swapChain;
 DXGI_PRESENT_PARAMETERS parameters;
 ID2D1Effect* eff; 
@@ -235,8 +235,9 @@ void InitDX() {
 }
 
 void InitEffects() {
-    LPCSTR files[5] = {
+    LPCSTR files[6] = {
         "Platforms\\Platforms.bmp",
+        "Platforms\\black.bmp",
         "Platforms\\steam.bmp",
         "Platforms\\xbox.bmp",
         "Platforms\\ps.bmp",
@@ -246,7 +247,7 @@ void InitEffects() {
     BITMAPINFO inf = { 0 };
     HDC DC = CreateCompatibleDC(NULL);
     ID2D1Bitmap1* tmp;
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < 6; i++) {
         HBITMAP hBitmap = (HBITMAP)LoadImageA(NULL, files[i], IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
         GetObject(hBitmap, sizeof(bt), &bt);
         inf.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
@@ -287,7 +288,7 @@ void AnimateFade() {
         return;
     }
     scaleEffect[0]->GetOutput(&img1);
-    scaleEffect[selected + 1]->GetOutput(&img2);
+    scaleEffect[selected + 2]->GetOutput(&img2);
     eff->SetInput(0, img1);
     eff->SetInput(1, img2);
     while (opacity >= 0.0f) {
