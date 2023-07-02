@@ -241,7 +241,7 @@ void InitEffects() {
         "Platforms\\black.bmp",
         "Platforms\\steam.bmp",
         "Platforms\\xbox.bmp",
-        "Platforms\\ps.bmp",
+        "Platforms\\playstation.bmp",
         "Platforms\\nintendo.bmp"
     };
     BITMAP bt = { 0 };
