@@ -239,8 +239,8 @@ void InitEffects() {
         "ConsoleThing\\ConsoleThing.bmp",
         "ConsoleThing\\black.bmp",
         "ConsoleThing\\steam.bmp",
-        "ConsoleThing\\ps.bmp",
         "ConsoleThing\\xbox.bmp",
+        "ConsoleThing\\ps.bmp",
         "ConsoleThing\\nintendo.bmp"
     };
     BITMAP bt = { 0 };
@@ -311,7 +311,6 @@ void AnimateFade() {
 void AnimateRect() {
     float target1 = selected * onefourth + halfthickness;
     float target2 = selected * onefourth + onefourth - halfthickness;
-    float diff = target1 - current1;
     while (current1 != target1) {
         if (current1 < target1) {
             current1++;
