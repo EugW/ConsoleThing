@@ -18,6 +18,7 @@ void AnimateFade();
 void PrecSleep(int dur);
 void ParseRawInput(PRAWINPUT pRawInput);
 
+HWND hwnd01;
 HRESULT hr;
 ID3D11Device* device3D;
 ID2D1DeviceContext* context2D;
@@ -71,6 +72,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
     RegisterClassA(&wc);
     HWND hwnd = CreateWindowExA(0, CLASS_NAME, CLASS_NAME, WS_BORDER,
         0, 0, X, Y, NULL, NULL, NULL, NULL);
+    hwnd01 = hwnd;
     SetWindowLongA(hwnd, GWL_STYLE, 0);
     SetCursor(NULL);
     MSG msg;
@@ -385,6 +387,7 @@ void ParseRawInput(PRAWINPUT pRawInput) {
     }
     switch (usage) {
     case 1: {
+        SetWindowPos(hwnd01, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
         STARTUPINFOA info = { sizeof(info) };
         PROCESS_INFORMATION processInfo;
         CreateProcessA(path[selected], args[selected], NULL, NULL,
