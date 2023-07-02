@@ -43,7 +43,7 @@ BOOL drawn = FALSE;
 int X;
 int Y;
 int selected = 0;
-int values[9];
+int values[10];
 float onefourth;
 float thickness;
 float halfthickness;
@@ -69,6 +69,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
     wc.hInstance = hInstance;
     wc.lpszClassName = CLASS_NAME;
     wc.hCursor = NULL;
+    wc.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(101));
     RegisterClassA(&wc);
     HWND hwnd = CreateWindowExA(0, CLASS_NAME, CLASS_NAME, WS_BORDER,
         0, 0, X, Y, NULL, NULL, NULL, NULL);
@@ -164,7 +165,7 @@ void Init() {
     FILE* f0 = fopen("Platforms\\path.txt", "r");
     if (f0 != NULL) {
         char buffInt[256];
-        for (int i = 0; i < 9; i++) {
+        for (int i = 0; i < 10; i++) {
             fgets(buffInt, 255, f0);
             values[i] = atoi(buffInt);
         }
@@ -304,7 +305,7 @@ void AnimateFade() {
     opacity = 1.0f;
     while (opacity >= 0.0f) {
         opacity -= 0.001f;
-        PrecSleep(values[4]);
+        PrecSleep(values[5]);
     }
 }
 
@@ -395,7 +396,7 @@ void ParseRawInput(PRAWINPUT pRawInput) {
         CloseHandle(processInfo.hThread);
         launched = TRUE;
         AnimateFade();
-        Sleep(values[5 + selected]);
+        Sleep(values[6 + selected]);
         exit(0);
         return;
     }
