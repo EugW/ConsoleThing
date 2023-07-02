@@ -388,7 +388,7 @@ void ParseRawInput(PRAWINPUT pRawInput) {
         exit(0);
         return;
     }
-    case 3: {
+    case 2: {
         exit(0);
         break;
     }
