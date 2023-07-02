@@ -397,11 +397,11 @@ void ParseRawInput(PRAWINPUT pRawInput) {
         launched = TRUE;
         AnimateFade();
         Sleep(values[6 + selected]);
-        exit(0);
+        abort();
         return;
     }
     case 2: {
-        exit(0);
+        abort();
         break;
     }
     }
