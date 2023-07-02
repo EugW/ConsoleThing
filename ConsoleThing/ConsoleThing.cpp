@@ -33,6 +33,7 @@ IDXGISwapChain1* swapChain;
 DXGI_PRESENT_PARAMETERS parameters;
 ID2D1Effect* eff; 
 ID2D1Image* img1;
+ID2D1Image* mid;
 ID2D1Image* img2;
 
 HANDLE mutex;
@@ -68,7 +69,6 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
     wc.hInstance = hInstance;
     wc.lpszClassName = CLASS_NAME;
     wc.hCursor = NULL;
-    wc.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(101));
     RegisterClassA(&wc);
     HWND hwnd = CreateWindowExA(0, CLASS_NAME, CLASS_NAME, WS_BORDER,
         0, 0, X, Y, NULL, NULL, NULL, NULL);
@@ -288,9 +288,20 @@ void AnimateFade() {
         return;
     }
     scaleEffect[0]->GetOutput(&img1);
+    scaleEffect[1]->GetOutput(&mid);
+    scaleEffect[selected + 2]->GetOutput(&img2);
+    scaleEffect[0]->GetOutput(&img1);
+    scaleEffect[1]->GetOutput(&mid);
     scaleEffect[selected + 2]->GetOutput(&img2);
     eff->SetInput(0, img1);
+    eff->SetInput(1, mid);
+    while (opacity >= 0.0f) {
+        opacity -= 0.001f;
+        PrecSleep(values[4]);
+    }
+    eff->SetInput(0, mid);
     eff->SetInput(1, img2);
+    opacity = 1.0f;
     while (opacity >= 0.0f) {
         opacity -= 0.001f;
         PrecSleep(values[4]);
