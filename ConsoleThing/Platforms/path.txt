@@ -1,0 +1,13 @@
+10
+25
+240
+100
+1000
+1000
+5000
+10000
+300
+C:\Users\Administrator\AppData\Local\Playnite\Playnite.FullscreenApp.exe --hidesplashscreen
+C:\Users\Administrator\AppData\Local\Playnite\Playnite.FullscreenApp.exe --hidesplashscreen
+C:\Users\Administrator\AppData\Local\Playnite\Playnite.FullscreenApp.exe --hidesplashscreen
+C:\Users\Administrator\AppData\Local\Playnite\Playnite.FullscreenApp.exe --hidesplashscreen

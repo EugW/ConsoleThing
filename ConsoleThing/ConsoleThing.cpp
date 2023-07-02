@@ -62,7 +62,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
     Init();
     InitDX();
     InitEffects();
-    LPCSTR CLASS_NAME = "ConsoleThing";
+    LPCSTR CLASS_NAME = "Platforms";
     WNDCLASSA wc;
     ZeroMemory(&wc, sizeof(WNDCLASSA));
     wc.lpfnWndProc = WindowProc;
@@ -160,8 +160,8 @@ DWORD WINAPI DrawThread(LPVOID param) {
 }
 
 void Init() {
-    CreateDirectoryA("ConsoleThing", NULL);
-    FILE* f0 = fopen("ConsoleThing\\path.txt", "r");
+    CreateDirectoryA("Platforms", NULL);
+    FILE* f0 = fopen("Platforms\\path.txt", "r");
     if (f0 != NULL) {
         char buffInt[256];
         for (int i = 0; i < 9; i++) {
@@ -183,7 +183,7 @@ void Init() {
         fclose(f0);
     }
     else {
-        f0 = fopen("ConsoleThing\\path.txt", "w");
+        f0 = fopen("Platforms\\path.txt", "w");
         fclose(f0);
     }
     RAWINPUTDEVICE rid;
@@ -236,12 +236,12 @@ void InitDX() {
 
 void InitEffects() {
     LPCSTR files[6] = {
-        "ConsoleThing\\ConsoleThing.bmp",
-        "ConsoleThing\\black.bmp",
-        "ConsoleThing\\steam.bmp",
-        "ConsoleThing\\xbox.bmp",
-        "ConsoleThing\\ps.bmp",
-        "ConsoleThing\\nintendo.bmp"
+        "Platforms\\Platforms.bmp",
+        "Platforms\\black.bmp",
+        "Platforms\\steam.bmp",
+        "Platforms\\xbox.bmp",
+        "Platforms\\ps.bmp",
+        "Platforms\\nintendo.bmp"
     };
     BITMAP bt = { 0 };
     BITMAPINFO inf = { 0 };
